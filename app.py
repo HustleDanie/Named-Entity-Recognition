@@ -1,45 +1,36 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 
-# Set Streamlit app layout
-st.set_page_config(page_title="Lightweight Multilingual NER", layout="centered")
+# ✅ Set Streamlit page config
+st.set_page_config(page_title="Multilingual NER App", layout="centered")
 
-# App title and description
-st.title("⚡ Lightweight Multilingual NER")
-st.markdown(
-    "Uses `Davlan/distilbert-base-multilingual-cased-ner-hrl` to extract **PER**, **ORG**, and **LOC** entities "
-    "from text in multiple languages (English, French, Arabic, Chinese, etc.)."
-)
+# ✅ Title
+st.title("🌍 Multilingual Named Entity Recognition")
+st.markdown("Identify named entities in text using **Davlan/distilbert-base-multilingual-cased-ner-hrl**")
 
-# Load the NER model (lightweight version)
+# ✅ Cache model loading
 @st.cache_resource
 def load_ner_pipeline():
-    return pipeline(
-        "ner",
-        model="Davlan/distilbert-base-multilingual-cased-ner-hrl",
-        tokenizer="Davlan/distilbert-base-multilingual-cased-ner-hrl",
-        aggregation_strategy="simple"
-    )
+    model_name = "Davlan/distilbert-base-multilingual-cased-ner-hrl"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForTokenClassification.from_pretrained(model_name)
+    return pipeline("ner", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
 
 ner_pipeline = load_ner_pipeline()
 
-# Text input
-user_input = st.text_area("✍️ Enter multilingual text here:", height=150)
+# ✅ User input
+text = st.text_area("Enter text in any supported language:", height=200, placeholder="Type something like: Angela Merkel war die Bundeskanzlerin von Deutschland.")
 
-# Run entity recognition
-if st.button("🔍 Extract Entities"):
-    if user_input.strip() == "":
-        st.warning("Please enter some text.")
-    else:
-        with st.spinner("Analyzing..."):
-            entities = ner_pipeline(user_input)
-
-        if entities:
-            st.success("Entities Detected:")
-            for ent in entities:
-                st.markdown(
-                    f"• **{ent['entity_group']}** → `{ent['word']}` "
-                    f"(Score: `{ent['score']:.2f}`, Pos: {ent['start']}–{ent['end']})"
-                )
-        else:
-            st.info("No entities found.")
+# ✅ Run NER
+if st.button("🔍 Recognize Entities") and text:
+    with st.spinner("Analyzing..."):
+        try:
+            entities = ner_pipeline(text)
+            if not entities:
+                st.info("No named entities found.")
+            else:
+                st.subheader("📌 Detected Entities")
+                for ent in entities:
+                    st.markdown(f"• **{ent['word']}** — *{ent['entity_group']}* (Score: {ent['score']:.2f})")
+        except Exception as e:
+            st.error(f"Error: {e}")
