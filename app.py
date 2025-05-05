@@ -1,11 +1,17 @@
 import streamlit as st
 from transformers import pipeline
 
-st.set_page_config(page_title="Multilingual NER")
+# Set Streamlit page configuration
+st.set_page_config(page_title="Multilingual NER", layout="centered")
 
-st.title("🧠 Multilingual Named Entity Recognition (NER)")
-st.markdown("Powered by `Davlan/bert-base-multilingual-cased-ner-hrl` 🤗")
+# Title and description
+st.title("🌍 Multilingual Named Entity Recognition (NER)")
+st.markdown(
+    "This app uses [Davlan/bert-base-multilingual-cased-ner-hrl](https://huggingface.co/Davlan/bert-base-multilingual-cased-ner-hrl) "
+    "to recognize `PER`, `ORG`, and `LOC` entities across multiple languages."
+)
 
+# Load the NER pipeline (cached to avoid reloading on every run)
 @st.cache_resource
 def load_pipeline():
     return pipeline(
@@ -15,16 +21,25 @@ def load_pipeline():
         aggregation_strategy="simple"
     )
 
-ner_pipeline = load_pipeline()
+ner = load_pipeline()
 
-text = st.text_area("Enter your text:", height=150)
+# User text input
+user_input = st.text_area("✏️ Enter text in any supported language (e.g., English, French, Arabic, Chinese):", height=150)
 
-if st.button("Extract Entities"):
-    if text:
-        with st.spinner("Extracting..."):
-            results = ner_pipeline(text)
-        for ent in results:
-            st.markdown(f"- **Entity**: `{ent['word']}` — *{ent['entity_group']}* ({ent['score']:.2f})")
-    else:
+# Process the input
+if st.button("🔍 Extract Entities"):
+    if user_input.strip() == "":
         st.warning("Please enter some text.")
-
+    else:
+        with st.spinner("Analyzing..."):
+            entities = ner(user_input)
+        
+        if entities:
+            st.success("Entities detected:")
+            for ent in entities:
+                st.markdown(
+                    f"• **{ent['entity_group']}** → `{ent['word']}` "
+                    f"(Score: `{ent['score']:.2f}`, Pos: {ent['start']}–{ent['end']})"
+                )
+        else:
+            st.info("No entities found.")
