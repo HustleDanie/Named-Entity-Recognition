@@ -1,41 +1,41 @@
 import streamlit as st
 from transformers import pipeline
 
-# Set Streamlit page configuration
-st.set_page_config(page_title="Multilingual NER", layout="centered")
+# Set Streamlit app layout
+st.set_page_config(page_title="Lightweight Multilingual NER", layout="centered")
 
-# Title and description
-st.title("🌍 Multilingual Named Entity Recognition (NER)")
+# App title and description
+st.title("⚡ Lightweight Multilingual NER")
 st.markdown(
-    "This app uses [Davlan/bert-base-multilingual-cased-ner-hrl](https://huggingface.co/Davlan/bert-base-multilingual-cased-ner-hrl) "
-    "to recognize `PER`, `ORG`, and `LOC` entities across multiple languages."
+    "Uses `Davlan/distilbert-base-multilingual-cased-ner-hrl` to extract **PER**, **ORG**, and **LOC** entities "
+    "from text in multiple languages (English, French, Arabic, Chinese, etc.)."
 )
 
-# Load the NER pipeline (cached to avoid reloading on every run)
+# Load the NER model (lightweight version)
 @st.cache_resource
-def load_pipeline():
+def load_ner_pipeline():
     return pipeline(
         "ner",
-        model="Davlan/bert-base-multilingual-cased-ner-hrl",
-        tokenizer="Davlan/bert-base-multilingual-cased-ner-hrl",
+        model="Davlan/distilbert-base-multilingual-cased-ner-hrl",
+        tokenizer="Davlan/distilbert-base-multilingual-cased-ner-hrl",
         aggregation_strategy="simple"
     )
 
-ner = load_pipeline()
+ner_pipeline = load_ner_pipeline()
 
-# User text input
-user_input = st.text_area("✏️ Enter text in any supported language (e.g., English, French, Arabic, Chinese):", height=150)
+# Text input
+user_input = st.text_area("✍️ Enter multilingual text here:", height=150)
 
-# Process the input
+# Run entity recognition
 if st.button("🔍 Extract Entities"):
     if user_input.strip() == "":
         st.warning("Please enter some text.")
     else:
         with st.spinner("Analyzing..."):
-            entities = ner(user_input)
-        
+            entities = ner_pipeline(user_input)
+
         if entities:
-            st.success("Entities detected:")
+            st.success("Entities Detected:")
             for ent in entities:
                 st.markdown(
                     f"• **{ent['entity_group']}** → `{ent['word']}` "
