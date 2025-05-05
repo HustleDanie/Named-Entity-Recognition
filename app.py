@@ -5,7 +5,7 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification, pipelin
 st.set_page_config(page_title="Multilingual NER App", layout="centered")
 
 # ✅ Title
-st.title("🌍 Multilingual Named Entity Recognition")
+st.title("Multilingual Named Entity Recognition")
 st.markdown("Identify named entities in text using **Davlan/distilbert-base-multilingual-cased-ner-hrl**")
 
 # ✅ Cache model loading
